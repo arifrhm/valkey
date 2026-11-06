@@ -314,6 +314,10 @@ start_server {tags {"cli logreqres:skip"}} {
         assert_equal \/ \/ [run_cli hgetall solidus]
         set escaped_reverse_solidus \"\\"
         assert_equal $escaped_reverse_solidus $escaped_reverse_solidus [run_cli --json hgetall \/]
+        # double quote
+        r hset dquote test "a\"b"
+        assert_equal \"a\\\"b\" [run_cli --json hget dquote test]
+        assert_equal \"a\\\\\\\"b\" [run_cli --quoted-json hget dquote test]
         # non printable (0xF0 in ISO-8859-1, not UTF-8(0xC3 0xB0))
         set eth "\u00f0\u0065"
         r hset eth test $eth

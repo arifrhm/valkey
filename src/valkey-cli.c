@@ -2048,16 +2048,17 @@ static sds jsonStringOutput(sds out, const char *p, int len, int mode) {
     if (mode == OUTPUT_JSON) {
         return escapeJsonString(out, p, len);
     } else if (mode == OUTPUT_QUOTED_JSON) {
-        /* Need to double-quote backslashes */
+        /* Need to double-quote backslashes and escape inner double-quotes */
         sds tmp = sdscatrepr(sdsempty(), p, len);
-        int tmplen = sdslen(tmp);
-        char *n = tmp;
-        while (tmplen--) {
-            if (*n == '\\')
+        size_t tmplen = sdslen(tmp);
+        for (size_t i = 0; i < tmplen; i++) {
+            if (tmp[i] == '\\') {
                 out = sdscatlen(out, "\\\\", 2);
-            else
-                out = sdscatlen(out, n, 1);
-            n++;
+            } else if (tmp[i] == '"' && i > 0 && i < tmplen - 1) {
+                out = sdscatlen(out, "\\\"", 2);
+            } else {
+                out = sdscatlen(out, &tmp[i], 1);
+            }
         }
 
         sdsfree(tmp);
